@@ -1,0 +1,72 @@
+name: Tests
+on: [push]
+jobs:
+  reset-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reset test status
+        run: |
+          curl -v -X POST https://barrelsofdata.com/api/v1/git/action/status/publish \
+          -H 'X-API-KEY: ${{ secrets.STATUS_PUBLISH_API_KEY }}' \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"${{ gitea.repository }}/action/tests","status":"starting"}'
+      - name: Reset build status
+        run: |
+          curl -v -X POST https://barrelsofdata.com/api/v1/git/action/status/publish \
+          -H 'X-API-KEY: ${{ secrets.STATUS_PUBLISH_API_KEY }}' \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"${{ gitea.repository }}/action/build","status":"waiting for test"}'
+  tests:
+    needs: reset-status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set test running
+        run: |
+          curl -v -X POST https://barrelsofdata.com/api/v1/git/action/status/publish \
+          -H 'X-API-KEY: ${{ secrets.STATUS_PUBLISH_API_KEY }}' \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"${{ gitea.repository }}/action/tests","status":"running"}'
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Run tests
+        id: tests
+        run: ./gradlew test
+      - name: Publish test status
+        if: always()
+        run: |
+          curl -v -X POST https://barrelsofdata.com/api/v1/git/action/status/publish \
+          -H 'X-API-KEY: ${{ secrets.STATUS_PUBLISH_API_KEY }}' \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"${{ gitea.repository }}/action/tests","status":"${{ steps.tests.conclusion }}"}'
+  build:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set build running
+        run: |
+          curl -v -X POST https://barrelsofdata.com/api/v1/git/action/status/publish \
+          -H 'X-API-KEY: ${{ secrets.STATUS_PUBLISH_API_KEY }}' \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"${{ gitea.repository }}/action/build","status":"running"}'
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build
+        id: build
+        run: ./gradlew build -x test
+      - name: Publish build status
+        if: always()
+        run: |
+          curl -v -X POST https://barrelsofdata.com/api/v1/git/action/status/publish \
+          -H 'X-API-KEY: ${{ secrets.STATUS_PUBLISH_API_KEY }}' \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"${{ gitea.repository }}/action/build","status":"${{ steps.build.conclusion }}"}'

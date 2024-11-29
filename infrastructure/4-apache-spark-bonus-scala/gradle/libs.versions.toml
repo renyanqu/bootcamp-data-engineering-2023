@@ -1,0 +1,13 @@
+[versions]
+apache-spark = "3.5.0"
+scala = "2.13.8"
+scala-test = "3.2.17"
+
+[libraries]
+scala-library = { module = "org.scala-lang:scala-library", version.ref = "scala" }
+scala-test = { module = "org.scalatest:scalatest_2.13", version.ref = "scala-test" }
+spark-core = { module = "org.apache.spark:spark-core_2.13", version.ref = "apache-spark" }
+spark-sql = { module = "org.apache.spark:spark-sql_2.13", version.ref = "apache-spark" }
+
+[bundles]
+spark = ["spark-core", "spark-sql"]

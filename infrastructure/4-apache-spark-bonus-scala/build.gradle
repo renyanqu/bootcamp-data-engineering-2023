@@ -1,0 +1,26 @@
+plugins {
+    // Apply the scala plugin to add support for Scala
+    id 'scala'
+    id 'java'
+    id 'idea'
+}
+
+
+repositories {
+    // Use jcenter for resolving dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    mavenCentral()
+}
+
+dependencies {
+    // For running just with Spark Core
+    implementation 'org.apache.spark:spark-core_2.12:2.4.0'
+    // Spark SQL subsumes Spark Core
+    implementation 'org.apache.spark:spark-sql_2.12:2.4.0'
+
+    // Use Scalatest for testing our library
+    testImplementation 'junit:junit:3.6'
+    testImplementation 'org.junit.platform:junit-platform-runner:1.10.0'
+    testImplementation "org.mockito:mockito-scala_2.12:1.17.0"
+    testImplementation 'org.scalatest:scalatest_2.12:3.1.2'
+}
